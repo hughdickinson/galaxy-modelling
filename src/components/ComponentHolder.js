@@ -69,10 +69,11 @@ export function componentBox(props) {
     </div>,
     <div id={propname} className="w3-container">
       <div className="w3-col l10">
-        {addInput(propname, 'mux', 'Center X')}
-        {addInput(propname, 'muy', 'Center Y')}
+        {addInput(propname, 'mux', 'Center X', { default: 50 })}
+        {addInput(propname, 'muy', 'Center Y', { default: 50 })}
         {addInput(propname, 'roll', 'Roll Angle', { mn: 0, mx: 360 })}
-        {addInput(propname, 'radius', 'Effective Radius', { mn: 0, mx: 500, multiplier: 0.1 })}
+        {addInput(propname, 'rEff', 'Effective Radius', { mn: 0, mx: 500, multiplier: 0.1, default: 200 })}
+        {addInput(propname, 'axRatio', 'Axis Ratio', { mn: 0, mx: 100, multiplier: 0.01, default: 100 })}
         {addInput(propname, 'sersic', 'Sersic Index', { mn: 50, mx: 500, multiplier: 0.01, default: 100 })}
       </div>
       <div className="w3-col l2">
@@ -111,7 +112,7 @@ export default class ComponentHolder extends React.Component {
     const components = [
       { name: 'Disk 1', type: 'sersic' },
       { name: 'Disk 2', type: 'sersic' },
-      { name: 'Bulge', type: 'sersic' },
+      /* { name: 'Bulge', type: 'sersic' }, */
     ];
     return (
       <div className="w3-light-grey" style={{ minHeight: '100%', paddingBottom: '30px' }}>

@@ -3,7 +3,7 @@ import InputPanel from './InputPanel';
 import ImagePanel from './ImagePanel';
 
 
-export default class Classify extends React.Component {
+export default class ClassifyPage extends React.Component {
   render() {
     const leftBoxStyle = {
       margin: 'auto',
@@ -14,7 +14,6 @@ export default class Classify extends React.Component {
       margin: 'auto',
       textAlign: 'center',
       paddingTop: '20px',
-      overflowY: 'scroll',
       maxHeight: '100%',
     };
     return (

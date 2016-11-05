@@ -3,10 +3,10 @@ import React from 'react';
 export default class HomePage extends React.Component {
   render() {
     const headerStyle = {
-      backgroundColor: '#00838F',
       color: '#fff',
       marginTop: '0px',
       padding: '20px 20px',
+      minHeight: '700px',
     };
     return (
       <div>

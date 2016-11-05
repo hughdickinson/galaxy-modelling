@@ -1,36 +1,35 @@
 import React from 'react';
 
-export function sersic1d(R, I0, k, n) {
-  /* accepts float R, I_0, k, n and returns Intensity given by sersic profile
-  at that radius
-  */
-  return Math.exp(Math.log(I0) - k * Math.pow(R, 1 / n));
-}
-
 export default class ImageBox extends React.Component {
   constructor(props) {
     super(props);
     this.state = { imageDataComponents: {} };
   }
   componentDidMount() {
+    /* the image box is now mounted, we can get the canvas context and trigger
+      the rendering of the default galaxy
+    */
     const canvas = document.getElementById('galaxyCanvas');
     if (canvas.getContext) {
       const ctx = canvas.getContext('2d');
       // set the image data for the model parameter
       this.state.imageDataComponents['Disk 1'] = ctx.createImageData(400, 400);
-      this.state.imageDataComponents.Bulge = ctx.createImageData(400, 400);
-      this.updateImageData();
-      this.updateCanvas();
+      this.state.imageDataComponents['Disk 2'] = ctx.createImageData(400, 400);
+
+      setTimeout(() => {
+        this.updateImageData('Disk 1'); this.updateImageData('Disk 2');
+      }, 1000);
     }
   }
   sersic2d(coords, kwargs) {
     let i = 0;
+    // grab parameters and check which are defined
     const params = typeof(kwargs) === 'undefined' ? {} : kwargs;
     const mu = typeof(params.mu) === 'undefined' ? [100, 100] : params.mu;
     const rEff = typeof(params.rEff) === 'undefined' ? 10 : params.rEff;
     const axRatio = typeof(params.axRatio) === 'undefined' ? 1 : params.axRatio;
     const roll = typeof(params.roll) === 'undefined' ? 0 : params.roll;
-    const I0 = typeof(params.I0) === 'undefined' ? 1000 : params.I0;
+    const I0 = typeof(params.I0) === 'undefined' ? 200 : params.I0;
     const n = typeof(params.n) === 'undefined' ? 1 : params.n;
 
     // precalculate where possible
@@ -42,7 +41,7 @@ export default class ImageBox extends React.Component {
     let yPrime = 0;
     let weightedRadius = 1;
     const ret = Array(coords.length);
-    // compile rolled coordinates
+    // calculate sersic value at rolled coordinates
     for (i = 0; i < coords.length; i++) {
       xPrime = coords[i][0] * cosRoll - coords[i][1] * sinRoll + xCorr;
       yPrime = coords[i][0] * sinRoll + coords[i][1] * cosRoll + yCorr;
@@ -52,10 +51,11 @@ export default class ImageBox extends React.Component {
     }
     return ret;
   }
-  updateImageData() {
-    const currentComponents = Object.keys(this.state.imageDataComponents);
+  updateImageData(component) {
+    const t0 = (new Date).getTime();
+    // const currentComponents = Object.keys(this.state.imageDataComponents);
     const canvas = document.getElementById('galaxyCanvas');
-    const dataLength = this.state.imageDataComponents[currentComponents[0]].data.length;
+    const dataLength = this.state.imageDataComponents[component].data.length;
     if (canvas.getContext) {
       const ctx = canvas.getContext('2d');
       const width = ctx.canvas.width;
@@ -68,17 +68,30 @@ export default class ImageBox extends React.Component {
           coords[width * i + j] = [i, j];
         }
       }
-      const rData = this.sersic2d(coords, { mu: [200, 200], roll: 0.3, axRatio: 0.5 });
-      const mx = Math.max(rData);
-      rData.forEach((k) => { return 255 * k / mx; });
+      // TODO: change paramaters here to reflect user input
+      // might be best to pass these as props to ImageBox and re-render each time component changes?
+      const mu = [
+        document.getElementsByName(component.replace(' ', '-') + '_mux_number')[0].value * 4,
+        document.getElementsByName(component.replace(' ', '-') + '_muy_number')[0].value * 4,
+      ];
+      const roll = document.getElementsByName(component.replace(' ', '-') + '_roll_number')[0].value * Math.PI / 180;
+      const axRatio = parseFloat(document.getElementsByName(component.replace(' ', '-') + '_axRatio_number')[0].value);
+      const rEff = parseFloat(document.getElementsByName(component.replace(' ', '-') + '_rEff_number')[0].value);
+      const n = parseFloat(document.getElementsByName(component.replace(' ', '-') + '_sersic_number')[0].value);
+      console.log({ mu, roll, axRatio, rEff, n });
+      const rData = this.sersic2d(coords, { mu, roll, axRatio, rEff, n });
+      // const mx = Math.max(rData);
       for (i = 0; i < dataLength; i++) {
-        this.state.imageDataComponents[currentComponents[0]].data[4 * i] = rData[i];
-        this.state.imageDataComponents[currentComponents[0]].data[4 * i + 1] = rData[i];
-        this.state.imageDataComponents[currentComponents[0]].data[4 * i + 2] = rData[i];
-        this.state.imageDataComponents[currentComponents[0]].data[4 * i + 3] = 255;
+        this.state.imageDataComponents[component].data[4 * i] = rData[i];
+        this.state.imageDataComponents[component].data[4 * i + 1] = rData[i];
+        this.state.imageDataComponents[component].data[4 * i + 2] = rData[i];
+        this.state.imageDataComponents[component].data[4 * i + 3] = 255;
       }
     }
-    return dataLength;
+    const t1 = (new Date).getTime();
+    console.log('Time taken to calculate: ', t1 - t0);
+    this.updateCanvas();
+    console.log('Time taken to render: ', (new Date).getTime() - t1);
   }
   updateCanvas() {
     // shouldn't need to get the canvas every time?
@@ -91,24 +104,12 @@ export default class ImageBox extends React.Component {
       const ret = ctx.createImageData(400, 400);
       for (i = 0; i < ret.data.length; i++) {
         ret.data[i] = 0;
-        for (j = 0; j < 1; j++) {
+        for (j = 0; j < 2; j++) {
           ret.data[i] += this.state.imageDataComponents[currentComponents[j]].data[i];
         }
       }
-      /* for (i = 0; i < 400; i++) {
-        for (j = 0; j < 400; j++) {
-          if (j > 0) {
-            // R
-            ret.data[4 * (400 * i + j)] = Math.min(2 * i, 255);
-            // G
-            ret.data[4 * (400 * i + j) + 1] = Math.min(j, 255);
-            // B
-            ret.data[4 * (400 * i + j) + 2] = Math.min(400 - j, 255);
-            // A
-            ret.data[4 * (400 * i + j) + 3] = 255;
-          }
-        }
-      } */
+      // TODO: need to normalize ret
+
       ctx.putImageData(ret, 0, 0);
     }
   }

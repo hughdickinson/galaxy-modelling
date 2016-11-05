@@ -23,7 +23,7 @@ export default class AddComponentButton extends React.Component {
     return (
       <div className="w3-dropdown-click">
         <button onClick={showComponentMenu} className="w3-btn-floating-large"
-          style={{ marginTop: '-25px', backgroundColor: '#FFA000' }}
+          style={{ marginTop: '-25px', backgroundColor: '#FFA900' }}
         >
           +
         </button>

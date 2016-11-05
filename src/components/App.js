@@ -21,7 +21,7 @@ export default class App extends React.Component {
           {this.props.children}
         </section>
         <section id="spacer" style={{ height: '50px' }}></section>
-        <footer style={{ minY: '100%', height: '100px', backgroundColor: '#0097A7', color: 'white' }}>
+        <footer style={{ minY: '100%', height: '100px', backgroundColor: '#1eb3af', color: 'white' }}>
           This is a footer
         </footer>
       </div>

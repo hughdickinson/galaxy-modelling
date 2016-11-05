@@ -1,12 +1,18 @@
 import React from 'react';
 import ImageBox from './ImageBox';
 import ImageControls from './ImageControls';
+import ScoreHolder from './ScoreHolder';
 
 export function fixPos() {
   const imP = document.getElementById('imagePanel');
+  console.log(document.body.scrollTop);
   if (window.innerWidth > 992) {
-    const top = Math.min(window.scrollY, document.getElementById('inputPanel').offsetHeight - 470);
-    imP.style['margin-top'] = top + 'px';
+    if (document.body.scrollTop > 88) {
+      const top = Math.min(window.scrollY - 88, document.getElementById('inputPanel').offsetHeight - 470 - 88);
+      imP.style['margin-top'] = top + 'px';
+    } else {
+      imP.style['margin-top'] = 0 + 'px';
+    }
   } else {
     imP.style['margin-top'] = 0 + 'px';
   }
@@ -26,6 +32,9 @@ export default class ImagePanel extends React.Component {
           </div>
           <div className="w3-row">
             <ImageControls/>
+          </div>
+          <div className="w3-row">
+            <ScoreHolder/>
           </div>
         </div>
       </div>
