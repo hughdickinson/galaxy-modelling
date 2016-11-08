@@ -1,7 +1,7 @@
 import React from 'react';
 
 export function hello(e) {
-  console.log(e.target.text);
+  return e.target.text;
 }
 
 function showComponentMenu() {
@@ -16,7 +16,6 @@ function showComponentMenu() {
 export default class AddComponentButton extends React.Component {
   handleClick(e) {
     e.preventDefault();
-    console.log(e.target);
     return;
   }
   render() {

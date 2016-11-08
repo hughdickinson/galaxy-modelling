@@ -1,16 +1,7 @@
 import React from 'react';
+import { getCanvas, startCanvasMouseTracking, updateUserOverlay } from '../CustomGlobalCallbacks.js';
 
-export function expand(e) {
-  const id = e.target.dataset.target;
-  const box = document.getElementById(id);
-  if (box.className.indexOf('w3-show') === -1) {
-    box.className += ' w3-show';
-  } else {
-    box.className = box.className.replace(' w3-show', '');
-  }
-}
-
-export function updateComponentInputs(e) {
+function updateComponentInputs(e) {
   const currentVal = e.target.value;
   let multiplier = e.target.dataset.multiplier;
   const tg = e.target.name.split('_');
@@ -23,11 +14,12 @@ export function updateComponentInputs(e) {
   }
   s += componentParInput === 'slider' ? 'number' : 'slider';
   document.getElementsByName(s)[0].value = currentVal * multiplier;
-  // we now need to pass it to the render function
+  const c = getCanvas();
+  updateUserOverlay(c[0], c[1]);
 }
 
 // should use props instead? It's an unnecessary hassle...
-export function addInput(comp, param, lbl, kws) {
+function addInput(comp, param, lbl, kws) {
   // check the arguments provided. Assume comp, param, lbl are defined.
   const c = comp.replace(' ', '-');
   const kwargs = typeof(kws) === 'undefined' ? {} : kws;
@@ -35,9 +27,10 @@ export function addInput(comp, param, lbl, kws) {
   const mx = typeof(kwargs.mx) === 'undefined' ? 100 : kwargs.mx;
   const multiplier = typeof(kwargs.multiplier) === 'undefined' ? 1 : kwargs.multiplier;
   const dflt = typeof(kwargs.default) === 'undefined' ? 0 : kwargs.default;
+  const hidden = typeof(kwargs.hidden) === 'undefined' ? false : kwargs.hidden;
   // and send out the JSX
   return (
-    <div className="w3-row" style={{ padding: '3px 0' }}>
+    <div className="w3-row" style={{ padding: '3px 0' }} hidden={hidden === true}>
       <div className="w3-col s4">
         <label style={{ lineHeight: '40px' }}htmlFor={`${c}_${param}_slider`}>{lbl}</label>
       </div>
@@ -57,7 +50,7 @@ export function addInput(comp, param, lbl, kws) {
   );
 }
 
-export function componentBox(props) {
+function componentBox(props) {
   const propname = props.name;
   /* TODO: How to remove components
   TODO: pass required inputs in props
@@ -68,14 +61,27 @@ export function componentBox(props) {
     <div data-target={propname} className={buttonClasses}>
       {propname}
     </div>,
-    <div id={propname.replace(' ', '-')} className="w3-container component-parameter-box">
+    <div id={propname.replace(' ', '-')} data-type={props.type} className="w3-container component-parameter-box">
       <div className="w3-col l10">
         {addInput(propname, 'mux', 'X-offset', { mn: -10, mx: 10, default: 0 })}
         {addInput(propname, 'muy', 'Y-offset', { mn: -10, mx: 10, default: 0 })}
         {addInput(propname, 'roll', 'Roll Angle', { mn: 0, mx: 360, default: 45 })}
-        {addInput(propname, 'rEff', 'Effective Radius', { mn: 0, mx: 500, multiplier: 0.1, default: 200 })}
-        {addInput(propname, 'axRatio', 'Axis Ratio', { mn: 0, mx: 100, multiplier: 0.01, default: 60 })}
-        {addInput(propname, 'sersic', 'Sersic Index', { mn: 50, mx: 500, multiplier: 0.01, default: 100 })}
+        {(props.type.indexOf('sersic') !== -1) ?
+          addInput(propname, 'rEff', 'Effective Radius', { mn: 0, mx: 500, multiplier: 0.1, default: 200 }) : ''
+        }
+        {(props.type.indexOf('sersic') !== -1) ?
+          addInput(propname, 'axRatio', 'Axis Ratio', { mn: 0, mx: 100, multiplier: 0.01, default: 60 }) : ''
+        }
+        {(props.type === 'sersic-bulge') ?
+          addInput(propname, 'sersic', 'Sersic Index',
+            { mn: 50, mx: 500, multiplier: 0.01, default: 100 }
+          ) : ''
+        }
+        {(props.type === 'sersic-disk') ?
+          addInput(propname, 'sersic', 'Sersic Index',
+            { mn: 50, mx: 500, multiplier: 0.01, default: 100, hidden: true }
+          ) : ''
+        }
         {addInput(propname, 'I0', 'Intensity', { mn: 0, mx: 100, default: 50 })}
       </div>
       <div className="w3-col l2">
@@ -96,6 +102,10 @@ componentBox.defaultProps = {
 };
 
 export default class ComponentHolder extends React.Component {
+  constructor(props) {
+    super(props);
+    this.chooseGalaxyCenter = this.chooseGalaxyCenter.bind(this);
+  }
   componentDidMount() {
     // initialise all inputs to the correct default value
     let i = 0;
@@ -110,17 +120,29 @@ export default class ComponentHolder extends React.Component {
       iptsNumber[i].value = v * iptsNumber[i].dataset.multiplier;
     }
   }
+  chooseGalaxyCenter() {
+    startCanvasMouseTracking('chooseGalaxyCenter');
+  }
   render() {
     const components = [
-      { name: 'Disk 1', type: 'sersic' },
-      { name: 'Disk 2', type: 'sersic' },
+      { name: 'Disk 1', type: 'sersic-disk' },
+      { name: 'Bulge 1', type: 'sersic-bulge' },
       /* { name: 'Bulge', type: 'sersic' }, */
     ];
     return (
       <div className="w3-light-grey" style={{ minHeight: '100%', paddingBottom: '30px' }}>
         <div className="w3-row w3-container">
-          {addInput('global', 'mux', 'Galaxy X position', { mn: 0, mx: 100, default: 50 })}
-          {addInput('global', 'muy', 'Galaxy Y position', { mn: 0, mx: 100, default: 50 })}
+          <div className="w3-col l10">
+            {addInput('global', 'mux', 'Galaxy X position', { mn: 0, mx: 100, default: 50 })}
+            {addInput('global', 'muy', 'Galaxy Y position', { mn: 0, mx: 100, default: 50 })}
+          </div>
+          <div className="w3-col l2" style={{ marginTop: '20px' }}>
+            <button className="w3-btn w3-hover-white w3-round-large"
+              style={{ margin: '3px' }} onClick={this.chooseGalaxyCenter}
+            >
+              <i className="material-icons">add_location</i>
+            </button>
+          </div>
         </div>
         { components.map(c => componentBox(c)) }
       </div>

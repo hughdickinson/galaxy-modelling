@@ -20,7 +20,7 @@ export function fixPos() {
 
 export default class ImagePanel extends React.Component {
   componentDidMount() {
-    window.onscroll = function () {fixPos();};
+    window.onscroll = () => {fixPos();};
   }
   render() {
     return (

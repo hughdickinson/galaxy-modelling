@@ -7,7 +7,6 @@ export default class RenderButton extends React.Component {
   }
   handleClick(e) {
     e.preventDefault();
-    console.log(e.target);
     return;
   }
   render() {

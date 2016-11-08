@@ -25,12 +25,15 @@ export default class ImageBox extends React.Component {
       backgroundColor: '#000',
       margin: 'auto',
       textAlign: 'center',
+      zIndex: 0,
     };
     const canvasHeight = 400;
     const canvasWidth = 400;
     return (
       <div className="w3-row" style={imageStyle}>
-        <canvas id="galaxyCanvas" height={canvasHeight} width={canvasWidth} style={canvasStyle}></canvas>
+        <canvas id="galaxyCanvas" height={canvasHeight} width={canvasWidth}
+          style={canvasStyle}
+        ></canvas>
       </div>
     );
   }
