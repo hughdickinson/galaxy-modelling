@@ -6,6 +6,8 @@ import ClassifyPage from './components/ClassifyPage';
 import About from './components/About';
 // import InputPanel from './components/InputPanel';
 import HomePage from './components/HomePage';
+import InputPanel from './components/InputPanel';
+import OptionsPanel from './components/OptionsPanel';
 
 // Todo: let's find a better way to include Styles,
 // currently Styles looks like an unused var to eslint
@@ -21,7 +23,10 @@ ReactDOM.render(
     <Route path="/" component={App}>
       <IndexRoute component={HomePage}/>
       <Route path="/about" component={About}/>
-      <Route path="/classify" component={ClassifyPage}/>
+      <Route path="/classify" component={ClassifyPage}>
+        <IndexRoute component={InputPanel}/>
+        <Route path="/classify/options" component={OptionsPanel}/>
+      </Route>
     </Route>
   </Router>
   , document.getElementById('root')

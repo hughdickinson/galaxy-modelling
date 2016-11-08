@@ -59,22 +59,24 @@ export function addInput(comp, param, lbl, kws) {
 
 export function componentBox(props) {
   const propname = props.name;
-  /* TODO: the header should be a dropdown, when selected the component is
-  removed
+  /* TODO: How to remove components
+  TODO: pass required inputs in props
+  TODO: Is there a way to lock values together (i.e. component centers)?
   */
   const buttonClasses = 'w3-btn-block w3-dark-grey w3-border w3-left-align';
   return ([
     <div data-target={propname} className={buttonClasses}>
       {propname}
     </div>,
-    <div id={propname} className="w3-container">
+    <div id={propname.replace(' ', '-')} className="w3-container component-parameter-box">
       <div className="w3-col l10">
-        {addInput(propname, 'mux', 'Center X', { default: 50 })}
-        {addInput(propname, 'muy', 'Center Y', { default: 50 })}
-        {addInput(propname, 'roll', 'Roll Angle', { mn: 0, mx: 360 })}
+        {addInput(propname, 'mux', 'X-offset', { mn: -10, mx: 10, default: 0 })}
+        {addInput(propname, 'muy', 'Y-offset', { mn: -10, mx: 10, default: 0 })}
+        {addInput(propname, 'roll', 'Roll Angle', { mn: 0, mx: 360, default: 45 })}
         {addInput(propname, 'rEff', 'Effective Radius', { mn: 0, mx: 500, multiplier: 0.1, default: 200 })}
-        {addInput(propname, 'axRatio', 'Axis Ratio', { mn: 0, mx: 100, multiplier: 0.01, default: 100 })}
+        {addInput(propname, 'axRatio', 'Axis Ratio', { mn: 0, mx: 100, multiplier: 0.01, default: 60 })}
         {addInput(propname, 'sersic', 'Sersic Index', { mn: 50, mx: 500, multiplier: 0.01, default: 100 })}
+        {addInput(propname, 'I0', 'Intensity', { mn: 0, mx: 100, default: 50 })}
       </div>
       <div className="w3-col l2">
       hi
@@ -116,6 +118,10 @@ export default class ComponentHolder extends React.Component {
     ];
     return (
       <div className="w3-light-grey" style={{ minHeight: '100%', paddingBottom: '30px' }}>
+        <div className="w3-row w3-container">
+          {addInput('global', 'mux', 'Galaxy X position', { mn: 0, mx: 100, default: 50 })}
+          {addInput('global', 'muy', 'Galaxy Y position', { mn: 0, mx: 100, default: 50 })}
+        </div>
         { components.map(c => componentBox(c)) }
       </div>
     );
